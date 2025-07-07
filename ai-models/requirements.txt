@@ -1,0 +1,23 @@
+# AI Models Requirements for HuggingFace Spaces and Kaggle
+
+# Core ML libraries
+torch==2.1.0
+torchvision==0.16.0
+transformers==4.35.0
+
+# Image processing
+Pillow==10.1.0
+opencv-python==4.8.1.78
+pytesseract==0.3.10
+
+# Gradio for HuggingFace Spaces
+gradio==4.7.1
+
+# Additional utilities
+numpy==1.24.3
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Optional: For advanced models
+# sentence-transformers==2.2.2
+# diffusers==0.21.4
