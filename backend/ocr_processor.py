@@ -11,7 +11,12 @@ import asyncio
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
 from PIL import Image
-import cv2
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    print("OpenCV not available - using PIL-only processing")
 import pytesseract
 from datetime import datetime
 
@@ -61,13 +66,24 @@ class CloudOCRProcessor:
         try:
             # Prepare image
             image = self._prepare_image(image_data)
-            cv_image = self._pil_to_cv2(image)
+            
+            if CV2_AVAILABLE:
+                cv_image = self._pil_to_cv2(image)
+            else:
+                cv_image = None
             
             # Run OCR with timeout
-            result = await asyncio.wait_for(
-                self._extract_text_and_elements(cv_image),
-                timeout=self.processing_timeout
-            )
+            if CV2_AVAILABLE and cv_image is not None:
+                result = await asyncio.wait_for(
+                    self._extract_text_and_elements(cv_image),
+                    timeout=self.processing_timeout
+                )
+            else:
+                # Fallback to PIL-only OCR
+                result = await asyncio.wait_for(
+                    self._extract_text_pil_only(image),
+                    timeout=self.processing_timeout
+                )
             
             processing_time = time.time() - start_time
             
@@ -108,10 +124,18 @@ class CloudOCRProcessor:
         try:
             # Prepare image (lower quality for speed)
             image = self._prepare_image(image_data, fast=True)
-            cv_image = self._pil_to_cv2(image)
+            
+            if CV2_AVAILABLE:
+                cv_image = self._pil_to_cv2(image)
+            else:
+                cv_image = None
             
             # Use fastest OCR method
-            result = await asyncio.to_thread(self._fast_ocr, cv_image)
+            if CV2_AVAILABLE and cv_image is not None:
+                result = await asyncio.to_thread(self._fast_ocr, cv_image)
+            else:
+                # Fallback to simple PIL OCR
+                result = await asyncio.to_thread(self._simple_pil_ocr, image)
             
             processing_time = time.time() - start_time
             
@@ -344,10 +368,87 @@ class CloudOCRProcessor:
             logger.error(f"Error preparing image: {e}")
             raise
     
+    async def _extract_text_pil_only(self, image: Image.Image) -> Dict[str, Any]:
+        """
+        Extract text using PIL and Tesseract only (no OpenCV)
+        """
+        try:
+            # Simple OCR using Tesseract
+            text = pytesseract.image_to_string(image)
+            
+            # Get bounding boxes
+            try:
+                data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+                elements = []
+                
+                for i in range(len(data['text'])):
+                    if int(data['conf'][i]) > 30:  # Confidence threshold
+                        text_item = data['text'][i].strip()
+                        if text_item:
+                            elements.append({
+                                "text": text_item,
+                                "bbox": [
+                                    data['left'][i],
+                                    data['top'][i],
+                                    data['left'][i] + data['width'][i],
+                                    data['top'][i] + data['height'][i]
+                                ],
+                                "confidence": data['conf'][i] / 100.0,
+                                "center": [
+                                    data['left'][i] + data['width'][i] // 2,
+                                    data['top'][i] + data['height'][i] // 2
+                                ]
+                            })
+                
+            except Exception as e:
+                logger.warning(f"Could not extract bounding boxes: {e}")
+                elements = []
+            
+            return {
+                "text": text.strip(),
+                "elements": elements,
+                "confidence": 0.8 if text.strip() else 0.0,
+                "method": "tesseract_pil_only"
+            }
+            
+        except Exception as e:
+            logger.error(f"PIL-only OCR error: {e}")
+            return {
+                "text": "",
+                "elements": [],
+                "confidence": 0.0,
+                "method": "tesseract_pil_only",
+                "error": str(e)
+            }
+    
+    def _simple_pil_ocr(self, image: Image.Image) -> Dict[str, Any]:
+        """
+        Simple PIL-only OCR for fast processing
+        """
+        try:
+            text = pytesseract.image_to_string(image)
+            return {
+                "text": text.strip(),
+                "elements": [],
+                "confidence": 0.7 if text.strip() else 0.0,
+                "method": "simple_pil_ocr"
+            }
+        except Exception as e:
+            return {
+                "text": "",
+                "elements": [],
+                "confidence": 0.0,
+                "method": "simple_pil_ocr",
+                "error": str(e)
+            }
+    
     def _pil_to_cv2(self, pil_image: Image.Image) -> np.ndarray:
         """
         Convert PIL Image to OpenCV format
         """
+        if not CV2_AVAILABLE:
+            raise ImportError("OpenCV not available")
+            
         try:
             # Convert PIL to numpy array
             np_array = np.array(pil_image)
