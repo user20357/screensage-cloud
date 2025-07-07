@@ -1,0 +1,8 @@
+# Minimal cloud requirements - fastest deployment
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+python-dotenv
+requests
+Pillow
