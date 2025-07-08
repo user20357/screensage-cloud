@@ -71,6 +71,22 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "ScreenSage Backend is running!",
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "endpoints": {
+            "health": "/health",
+            "analyze": "/analyze-screenshot",
+            "tasks": "/tasks",
+            "websocket": "/ws"
+        }
+    }
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():

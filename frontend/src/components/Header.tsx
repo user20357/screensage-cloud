@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, GitHub, ExternalLink } from 'lucide-react';
+import { Zap, ExternalLink } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -63,7 +63,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <GitHub className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4" />
               <span className="hidden sm:inline">GitHub</span>
             </motion.button>
             

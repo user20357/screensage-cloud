@@ -52,7 +52,7 @@ const ScreenshotUploader: React.FC<ScreenshotUploaderProps> = ({ onAnalysisCompl
           'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
           setUploadProgress(progress);
         },
       });
@@ -85,15 +85,13 @@ const ScreenshotUploader: React.FC<ScreenshotUploaderProps> = ({ onAnalysisCompl
       </div>
 
       {/* Dropzone */}
-      <motion.div
+      <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
           isDragActive
             ? 'border-sage-green bg-sage-bg scale-105'
             : 'border-gray-300 hover:border-sage-green hover:bg-sage-bg'
         }`}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
         <input {...getInputProps()} />
         
@@ -120,7 +118,7 @@ const ScreenshotUploader: React.FC<ScreenshotUploaderProps> = ({ onAnalysisCompl
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* File Preview */}
       <AnimatePresence>

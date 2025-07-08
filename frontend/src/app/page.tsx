@@ -11,16 +11,16 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [analysisData, setAnalysisData] = useState(null);
-  const [tasks, setTasks] = useState([]);
+  const [activeTab, setActiveTab] = useState<string>('upload');
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
 
-  const handleAnalysisComplete = useCallback((data) => {
+  const handleAnalysisComplete = useCallback((data: any) => {
     setAnalysisData(data);
     setActiveTab('results');
   }, []);
 
-  const handleTaskCreate = useCallback((task) => {
+  const handleTaskCreate = useCallback((task: any) => {
     setTasks(prev => [...prev, task]);
     setActiveTab('tasks');
   }, []);

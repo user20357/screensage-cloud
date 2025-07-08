@@ -361,8 +361,8 @@ const ScreenCapture: React.FC<ScreenCaptureProps> = ({ onAnalysisComplete }) => 
           <p className="text-blue-800 font-medium">Browser Screen Capture</p>
         </div>
         <p className="text-blue-700 text-sm">
-          This feature uses the browser's Screen Capture API (similar to Google Meet screen sharing).
-          You'll be prompted to select which screen/window to capture.
+          This feature uses the browser&apos;s Screen Capture API (similar to Google Meet screen sharing).
+          You&apos;ll be prompted to select which screen/window to capture.
         </p>
         <p className="text-blue-600 text-xs mt-1">
           Supported browsers: Chrome, Firefox, Safari, Edge (latest versions)
